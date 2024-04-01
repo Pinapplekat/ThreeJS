@@ -4,7 +4,7 @@ const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerH
 const renderer = new THREE.WebGLRenderer();
 const loader = new THREE.TextureLoader();
 
-var fps = 60
+var fps = 30
 var maxCameraDist = 10
 var movementSpeed = 16
 var rotationSmoothing = 0.05
@@ -84,15 +84,31 @@ setInterval(() => {
     else {
         var rotationZ = beforeZ + (camera.rotation.z - beforeZ) * rotationSmoothing
     }
+    if (Math.abs(camera.rotation.x - beforeX) >= Math.PI) {
+        if (beforeX < 0)
+            var rotationX = beforeX - (2 * Math.PI - camera.rotation.x + beforeX) * rotationSmoothing
+        else 
+            var rotationX = beforeX + (2 * Math.PI + camera.rotation.x - beforeX) * rotationSmoothing
 
-    camera.rotation.set(beforeX + (camera.rotation.x - beforeX) * rotationSmoothing, beforeY + (camera.rotation.y - beforeY) * rotationSmoothing, rotationZ)
+        if(Math.abs(rotationX) > Math.PI) {
+            if (rotationX < 0)
+                rotationX = rotationX + (2 * Math.PI)
+            else 
+                rotationX = rotationX - (2 * Math.PI)
+        }
+    }
+    else {
+        var rotationX = beforeX + (camera.rotation.x - beforeX) * rotationSmoothing
+    }
+
+    camera.rotation.set(rotationX, beforeY + (camera.rotation.y - beforeY) * rotationSmoothing, rotationZ)
 
     // Camera follow player script
     var playerDist = Math.sqrt((cubePos.x - cameraPos.x)**2 + (cubePos.y - cameraPos.y)**2 + (cubePos.z - cameraPos.z)**2)
     if (playerDist > maxCameraDist) {
         var scale = maxCameraDist / playerDist
         cameraPos.x = cameraPos.x - (cameraPos.x - (cubePos.x + (cameraPos.x - cubePos.x) * scale)) * movementSmoothing
-        // cameraPos.y = cameraPos.y - (cameraPos.y - (cubePos.y + (cameraPos.y - cubePos.y) * scale)) * movementSmoothing
+        cameraPos.y = cameraPos.y - (cameraPos.y - cubePos.y - 5) * movementSmoothing
         cameraPos.z = cameraPos.z - (cameraPos.z - (cubePos.z + (cameraPos.z - cubePos.z) * scale)) * movementSmoothing
 
         camera.position.set(cameraPos.x, cameraPos.y, cameraPos.z)
@@ -108,6 +124,12 @@ setInterval(() => {
     }
     if (keysPressed['w']) {
         cubePos.z -= cubePos.movementSpeed * delta;
+    }
+    if (keysPressed[' ']) {
+        cubePos.y += cubePos.movementSpeed * delta;
+    }
+    if (keysPressed['c']) {
+        cubePos.y -= cubePos.movementSpeed * delta;
     }
     cube.position.set(cubePos.x, cubePos.y, cubePos.z);
     renderer.render(scene, camera);
